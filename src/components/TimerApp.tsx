@@ -123,7 +123,7 @@ export default function TimerApp(){
                                     setTimeLeft({ minutes: newWorkMinutes, seconds: 0 })
                                 }
                             }}
-                            className="p-2 min-w-[5rem] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            className="p-2 min-w-[5rem] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                             {[15, 20, 25, 30, 45, 60, 90, 120].map((minutes) => (
                                 <option key={minutes} value={minutes}>
                                     {minutes}分
@@ -142,7 +142,7 @@ export default function TimerApp(){
                                     setTimeLeft({ minutes: newBreakMinutes, seconds: 0 })
                                 }
                             }}
-                            className="p-2 min-w-[5rem] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            className="p-2 min-w-[5rem] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                             {[5, 10, 15, 20, 25, 30].map((minutes) => (
                                 <option key={minutes} value={minutes}>
                                     {minutes}分
@@ -155,6 +155,7 @@ export default function TimerApp(){
                         <Switch 
                             checked={autoStart}
                             onCheckedChange={() => setAutoStart(!autoStart)}
+                            className="cursor-pointer"
                         />  
                     </div>
                     

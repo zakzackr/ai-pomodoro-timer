@@ -1,17 +1,47 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter} from '@/components/ui/card';
 import TimerDisplay from './TimerDisplay';
 import Controls from './Controls';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useReward } from 'react-rewards';
+import { playNotificationSound } from '@/utils/sound';
+import MetadataUpdater from './MetadataUpdater';
+
+type Mode = 'work' | 'break'; 
 
 export default function TimerApp(){
+    const { reward: confetti, isAnimating } = useReward('confetti-reward', 'confetti', {
+        elementCount: 100,
+        spread: 70,
+        decay: 0.93,
+        lifetime: 150
+    })
     // timerの実行状態を管理するstate
     const [isRunning, setIsRunning] = useState(false);
 
+    const [workMinutes, setWorkMinutes] = useState(25);
+    const [breakMinutes, setBreakMinutes] = useState(5);
+
     // timerの残り時間を保持する状態変数
-    const [timeLeft, setTimeLeft] = useState({ minutes: 25, seconds: 0 });
+    const [timeLeft, setTimeLeft] = useState({ minutes: workMinutes, seconds: 0 });
     
+    const [mode, setMode] = useState<Mode>('work');
+
+    const toggleMode = () => {
+        // modeの切り替え
+        const newMode = mode === 'work'? 'break': 'work';
+        setMode(newMode)
+
+        // 各modeの初期値を設定
+        setTimeLeft({
+            minutes: newMode === 'work'? workMinutes: breakMinutes,
+            seconds: 0
+        })
+
+        // mode切り替え時に自動でtimerがスタートしないようにする
+        setIsRunning(false);
+    }
 
     // 開始・停止ボタンのハンドラ
     const handleStart = () => {
@@ -21,7 +51,10 @@ export default function TimerApp(){
     // リセットボタンのハンドラ
     const handleReset = () => {
         setIsRunning(false);
-        setTimeLeft({ minutes: 25, seconds: 0 })
+        setTimeLeft({ 
+            minutes: mode === 'work'? workMinutes: breakMinutes, 
+            seconds: 0 
+        });
     }
 
     useEffect(() => {
@@ -34,13 +67,18 @@ export default function TimerApp(){
                     if (prev.seconds === 0){
                         if (prev.minutes === 0){
                             setIsRunning(false);
-                            return prev; // 00:00をそのまま返す
+                            toggleMode();
+                            if (mode === 'work'){
+                                void confetti();
+                            }
+                            void playNotificationSound();
+                            return prev; // 現在の状態を返す
                         }
                         return { minutes: prev.minutes - 1, seconds: 59 };
                     }
                     return { ...prev, seconds: prev.seconds - 1 };
                 })
-            }, 1000)
+            }, 1)
         }
 
         // cleanup関数
@@ -54,19 +92,61 @@ export default function TimerApp(){
 
     return (
         <div className="min-h-screen flex items-center 
-        justify-center bg-background p4">
+        justify-center bg-background p4 relative">
+            <span id="confetti-reward" className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"/>
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle className="text-center text-2xl font-bold">
-                        作業時間
+                        { mode === 'work'? '作業時間': '休憩時間' }
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-6">
-                    <TimerDisplay minutes={timeLeft.minutes} seconds={timeLeft.seconds}/>
-                    <Controls onStart={handleStart} onReset={handleReset} isRunning={isRunning} />
+                    <TimerDisplay minutes={timeLeft.minutes} seconds={timeLeft.seconds} mode ={mode}/>
+                    <Controls onStart={handleStart} onReset={handleReset} onModeToggle={toggleMode} isRunning={isRunning} />
                 </CardContent>
+                <CardFooter className="flex flex-col gap-4 w-full max-w-[200px] mx-auto">
+                    <div className="flex items-center gap-2">
+                        <label className="text-sm font-medium min-w-[3.5rem]">作業時間</label>
+                        <select 
+                            value={workMinutes}
+                            onChange={(e) => {
+                                const newWorkMinutes = parseInt(e.target.value);
+                                setWorkMinutes(newWorkMinutes);
+                                if (mode === 'work' && !isRunning){
+                                    setTimeLeft({ minutes: newWorkMinutes, seconds: 0 })
+                                }
+                            }}
+                            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {[15, 20, 25, 30, 45, 60, 90, 120].map((minutes) => (
+                                <option key={minutes} value={minutes}>
+                                    {minutes}分
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <label className="text-sm font-medium min-w-[3.5rem]">休憩時間</label>
+                        <select 
+                            value={breakMinutes}
+                            onChange={(e) => {
+                                const newBreakMinutes = parseInt(e.target.value);
+                                setBreakMinutes(newBreakMinutes);
+                                if (mode === 'break' && !isRunning){
+                                    setTimeLeft({ minutes: newBreakMinutes, seconds: 0 })
+                                }
+                            }}
+                            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {[5, 10, 15, 20, 25, 30].map((minutes) => (
+                                <option key={minutes} value={minutes}>
+                                    {minutes}分
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                </CardFooter>
             </Card>
-
+            <MetadataUpdater minutes={timeLeft.minutes} seconds={timeLeft.seconds} mode={mode} />
         </div>
     )
 }

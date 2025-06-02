@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter} from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import TimerDisplay from './TimerDisplay';
 import Controls from './Controls';
 import { useState, useEffect, useRef } from 'react';
@@ -23,6 +24,9 @@ export default function TimerApp(){
     const [workMinutes, setWorkMinutes] = useState(25);
     const [breakMinutes, setBreakMinutes] = useState(5);
 
+    // 自動開始機能の設定
+    const [autoStart, setAutoStart] = useState(false);
+
     // timerの残り時間を保持する状態変数
     const [timeLeft, setTimeLeft] = useState({ minutes: workMinutes, seconds: 0 });
     
@@ -39,8 +43,8 @@ export default function TimerApp(){
             seconds: 0
         })
 
-        // mode切り替え時に自動でtimerがスタートしないようにする
-        setIsRunning(false);
+        // mode切り替え時の自動スタートのON/OFF
+        setIsRunning(autoStart);
     }
 
     // 開始・停止ボタンのハンドラ
@@ -67,11 +71,14 @@ export default function TimerApp(){
                     if (prev.seconds === 0){
                         if (prev.minutes === 0){
                             setIsRunning(false);
-                            toggleMode();
                             if (mode === 'work'){
                                 void confetti();
                             }
                             void playNotificationSound();
+                            // toggleMode();
+                            setTimeout(() => {
+                                toggleMode();
+                            }, 100)
                             return prev; // 現在の状態を返す
                         }
                         return { minutes: prev.minutes - 1, seconds: 59 };
@@ -105,7 +112,7 @@ export default function TimerApp(){
                     <Controls onStart={handleStart} onReset={handleReset} onModeToggle={toggleMode} isRunning={isRunning} />
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4 w-full max-w-[200px] mx-auto">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full justify-between">
                         <label className="text-sm font-medium min-w-[3.5rem]">作業時間</label>
                         <select 
                             value={workMinutes}
@@ -116,7 +123,7 @@ export default function TimerApp(){
                                     setTimeLeft({ minutes: newWorkMinutes, seconds: 0 })
                                 }
                             }}
-                            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            className="p-2 min-w-[5rem] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             {[15, 20, 25, 30, 45, 60, 90, 120].map((minutes) => (
                                 <option key={minutes} value={minutes}>
                                     {minutes}分
@@ -124,7 +131,7 @@ export default function TimerApp(){
                             ))}
                         </select>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full justify-between">
                         <label className="text-sm font-medium min-w-[3.5rem]">休憩時間</label>
                         <select 
                             value={breakMinutes}
@@ -135,13 +142,20 @@ export default function TimerApp(){
                                     setTimeLeft({ minutes: newBreakMinutes, seconds: 0 })
                                 }
                             }}
-                            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            className="p-2 min-w-[5rem] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             {[5, 10, 15, 20, 25, 30].map((minutes) => (
                                 <option key={minutes} value={minutes}>
                                     {minutes}分
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    <div className="flex items-center gap-2 w-full justify-between">
+                        <label className="text-sm font-medium min-w-[3.5rem]">自動開始</label>
+                        <Switch 
+                            checked={autoStart}
+                            onCheckedChange={() => setAutoStart(!autoStart)}
+                        />  
                     </div>
                     
                 </CardFooter>

@@ -3,12 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Separator } from "@/components/ui/separator"
 import TimerDisplay from './TimerDisplay';
 import Question from './Question';
 import Controls from './Controls';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useReward } from 'react-rewards';
 import { playNotificationSound } from '@/utils/sound';
 import MetadataUpdater from './MetadataUpdater';
@@ -18,7 +17,7 @@ import { generateRefreshSuggestion } from '@/utils/gemini';
 type Mode = 'work' | 'break'; 
 
 export default function TimerApp(){
-    const { reward: confetti, isAnimating } = useReward('confetti-reward', 'confetti', {
+    const { reward: confetti } = useReward('confetti-reward', 'confetti', {
         elementCount: 100,
         spread: 70,
         decay: 0.93,

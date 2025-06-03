@@ -3,7 +3,7 @@ import { GoogleGenerativeAI  } from "@google/generative-ai";
 // Gemini API　クライアントの初期化
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
 
-export async function generateRefreshSuggestion(task: String): Promise<string> {
+export async function generateRefreshSuggestion(task: string): Promise<string> {
     const model = genAI.getGenerativeModel( {model: 'gemini-1.5-flash' });
     const prompt = `
     # 命令

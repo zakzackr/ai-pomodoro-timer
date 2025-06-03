@@ -2,25 +2,25 @@ import { useEffect } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
-interface RefreshSuggestionProps {
-    suggestion: string | null;
+interface QuestionProps {
+    question: string | null;
     onClose: () => void;
 }
 
-export default function RefreshSuggestion({ suggestion, onClose }: RefreshSuggestionProps){
+export default function Question({ question, onClose }: QuestionProps){
     // 5秒後に自動で閉じる
     useEffect(() =>{
-        if (suggestion){
+        if (question){
             const timer = setTimeout(() => {
                 onClose();
-            }, 5000)
+            }, 60000)
             return () => clearTimeout(timer);
         }
-    }, [suggestion, onClose]);
+    }, [question, onClose]);
 
     return (
         <AnimatePresence>
-            {suggestion && (
+            {question && (
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -32,7 +32,7 @@ export default function RefreshSuggestion({ suggestion, onClose }: RefreshSugges
                         <X size={16} />
                     </button>
                     <p className="text-lg font-medium text-gray-700 pr-6">
-                        {suggestion}
+                        {question}
                     </p>
                 </motion.div>
             )}

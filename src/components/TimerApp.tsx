@@ -2,8 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Separator } from "@/components/ui/separator"
 import TimerDisplay from './TimerDisplay';
-import RefreshSuggestion from '@/components/RefreshSuggestion';
+import Question from './Question';
 import Controls from './Controls';
 import { useState, useEffect, useRef } from 'react';
 import { useReward } from 'react-rewards';
@@ -30,8 +33,10 @@ export default function TimerApp(){
     // 自動開始機能の設定
     const [autoStart, setAutoStart] = useState(false);
 
-    // リフレッシュの提案
-    const [refreshSuggestion, setRefreshSuggestion] = useState<string | null >(null);
+    // 復習用の問題
+    const [question, setQuestion] = useState<string | null >(null);
+
+    const [task, setTask] = useState('');
 
     // timerの残り時間を保持する状態変数
     const [timeLeft, setTimeLeft] = useState({ minutes: workMinutes, seconds: 0 });
@@ -50,9 +55,11 @@ export default function TimerApp(){
         })
 
         if (newMode === 'break'){
-            generateRefreshSuggestion()
-                .then((suggestion) => setRefreshSuggestion(suggestion))
-                .catch(console.error)
+            if (task !== ''){
+                generateRefreshSuggestion(task)
+                    .then((question) => setQuestion(question))
+                    .catch(console.error)
+            }
         }
 
         // mode切り替え時の自動スタートのON/OFF
@@ -108,14 +115,6 @@ export default function TimerApp(){
         }
 
     }, [isRunning])
-
-    // useEffect(() => {
-    //     const testGemini = async () => {
-    //         const suggestion = await generateRefreshSuggestion();
-    //         console.log(suggestion);
-    //     };
-    //     testGemini();
-    // }, []);
 
     return (
         <div className="min-h-screen flex items-center 
@@ -179,9 +178,19 @@ export default function TimerApp(){
                         />  
                     </div>
                 </CardFooter>
+                <Separator />
+                <div className="flex flex-col items-center gap-2">
+                    <label className="text-sm font-bold min-w-[3.5rem">作業内容</label>
+                    <Textarea
+                        className="w-full max-w-xs"
+                        placeholder="作業内容を入力すると、AIが復習用の問題を出題してくれます。例）英語 単語 高校生レベル"
+                        value={task}
+                        onChange={e => setTask(e.target.value)} 
+                    />
+                </div>
             </Card>
             <MetadataUpdater minutes={timeLeft.minutes} seconds={timeLeft.seconds} mode={mode} />
-            <RefreshSuggestion suggestion={refreshSuggestion} onClose={() => setRefreshSuggestion(null)}></RefreshSuggestion>
+            <Question question={question} onClose={() => setQuestion(null)}></Question>
         </div>
     )
 }

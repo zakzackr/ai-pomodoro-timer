@@ -103,7 +103,7 @@ export default function TimerApp(){
                     }
                     return { ...prev, seconds: prev.seconds - 1 };
                 })
-            }, 1)
+            }, 1000)
         }
 
         // cleanup関数

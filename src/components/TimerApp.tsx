@@ -3,11 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import TimerDisplay from './TimerDisplay';
+import RefreshSuggestion from '@/components/RefreshSuggestion';
 import Controls from './Controls';
 import { useState, useEffect, useRef } from 'react';
 import { useReward } from 'react-rewards';
 import { playNotificationSound } from '@/utils/sound';
 import MetadataUpdater from './MetadataUpdater';
+import { generateRefreshSuggestion } from '@/utils/gemini';
+
 
 type Mode = 'work' | 'break'; 
 
@@ -27,6 +30,9 @@ export default function TimerApp(){
     // 自動開始機能の設定
     const [autoStart, setAutoStart] = useState(false);
 
+    // リフレッシュの提案
+    const [refreshSuggestion, setRefreshSuggestion] = useState<string | null >(null);
+
     // timerの残り時間を保持する状態変数
     const [timeLeft, setTimeLeft] = useState({ minutes: workMinutes, seconds: 0 });
     
@@ -42,6 +48,12 @@ export default function TimerApp(){
             minutes: newMode === 'work'? workMinutes: breakMinutes,
             seconds: 0
         })
+
+        if (newMode === 'break'){
+            generateRefreshSuggestion()
+                .then((suggestion) => setRefreshSuggestion(suggestion))
+                .catch(console.error)
+        }
 
         // mode切り替え時の自動スタートのON/OFF
         setIsRunning(autoStart);
@@ -96,6 +108,14 @@ export default function TimerApp(){
         }
 
     }, [isRunning])
+
+    // useEffect(() => {
+    //     const testGemini = async () => {
+    //         const suggestion = await generateRefreshSuggestion();
+    //         console.log(suggestion);
+    //     };
+    //     testGemini();
+    // }, []);
 
     return (
         <div className="min-h-screen flex items-center 
@@ -158,10 +178,10 @@ export default function TimerApp(){
                             className="cursor-pointer"
                         />  
                     </div>
-                    
                 </CardFooter>
             </Card>
             <MetadataUpdater minutes={timeLeft.minutes} seconds={timeLeft.seconds} mode={mode} />
+            <RefreshSuggestion suggestion={refreshSuggestion} onClose={() => setRefreshSuggestion(null)}></RefreshSuggestion>
         </div>
     )
 }
